@@ -5,7 +5,8 @@
   "main": "index.js",
   "type":"module",
   "scripts": {
-    "test": "tap"
+    "test": "tap",
+    "gen-readme":"pandoc -f docx -t gfm jsonex.docx > README.md"
   },
   "author": "",
   "license": "BSD-3-Clause",
