@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "description": "JSON expression in jsJSONon format.",
   "main": "index.js",
+  "type":"module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tap"
   },
   "author": "",
   "license": "BSD-3-Clause",
