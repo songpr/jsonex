@@ -14,23 +14,22 @@ class JSONexpression {
         return this._exp(jsonData);
     }
 
-    static #verify(jsonexp) {
-        if (jsonexp == null || typeof (jsonexp) !== "object") {
+    static #verify(json) {
+        if (json == null || typeof (json) !== "object") {
             throw Error("support only JSON format/object")
         }
-        const dataProperties = []
         //copy and left only data
-        const jsonEXP = JSON.parse(JSON.stringify(jsonexp))
-        if (Object.getOwnPropertyNames(jsonEXP).length === 0) throw Error("not support empty JSON")
-        return jsonEXP
+        const jsonexp = JSON.parse(JSON.stringify(json))
+        if (Object.getOwnPropertyNames(jsonexp).length === 0) throw Error("not support empty JSON")
+        return jsonexp
     }
     /**
      * private compile function use in JSONexpression only
      * @param {*} jsonexp 
      * @returns 
      */
-    static #compile(jsonexp) {
-        const jsonEXP = this.#verify(jsonexp)
+    static #compile(json) {
+        const jsonexp = this.#verify(json)
         return (jsonData) => {
             return "Hello World"
         }
