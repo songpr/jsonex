@@ -19,11 +19,10 @@ class JSONexpression {
             throw Error("support only JSON format/object")
         }
         const dataProperties = []
-        for (const [name, value] of Object.entries(jsonexp)) {
-            if (typeof (value) === "function") continue //ignore method property
-            dataProperties.push(value)
-        }
-        if (dataProperties.length === 0) throw Error("not support empty JSON")
+        //copy and left only data
+        const jsonEXP = JSON.parse(JSON.stringify(jsonexp))
+        if (Object.getOwnPropertyNames(jsonEXP).length === 0) throw Error("not support empty JSON")
+        return jsonEXP
     }
     /**
      * private compile function use in JSONexpression only
@@ -31,7 +30,7 @@ class JSONexpression {
      * @returns 
      */
     static #compile(jsonexp) {
-        this.#verify(jsonexp)
+        const jsonEXP = this.#verify(jsonexp)
         return (jsonData) => {
             return "Hello World"
         }
