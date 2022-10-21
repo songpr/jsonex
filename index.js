@@ -95,11 +95,33 @@ class JSONexpression {
                                 if (i > 0) {
                                     const currentValue = this.#isValue(lessValues[i]) ? lessValues[i] :
                                         lessValues[i].nodeProcessor(json)
-                                    if (!(currentValue != null && prevValue != null && typeof (currentValue) === typeof (prevValue) && prevValue < currentValue)) return false
+                                    if (currentValue == null || prevValue == null || typeof (currentValue) !== typeof (prevValue)) return false
+                                    if (!(prevValue < currentValue)) return false
                                     prevValue = currentValue //store current process value for next value
                                 } else {
                                     prevValue = this.#isValue(lessValues[i]) ? lessValues[i] :
                                         lessValues[i].nodeProcessor(json)
+                                }
+                            }
+                            return true;
+                        }
+                        break;
+                    case "greater":
+                        if (Array.isArray(nodeValue) !== true || nodeValue.length < 2) throw Error("value for less operator must be array with length more than 1")
+                        const greaterValues = processArrayValues(nodeValue, result, parentResult)
+                        result.nodeProcessor = (json) => {
+                            if (result.isAllValues === false && (json == null || typeof (json) != "object")) throw Error("null is not support on non value JSON expression")
+                            let prevValue = null
+                            for (let i = 0; i < greaterValues.length; i++) {
+                                if (i > 0) {
+                                    const currentValue = this.#isValue(greaterValues[i]) ? greaterValues[i] :
+                                        greaterValues[i].nodeProcessor(json)
+                                    if (currentValue == null || prevValue == null || typeof (currentValue) !== typeof (prevValue)) return false
+                                    if (!(prevValue > currentValue)) return false
+                                    prevValue = currentValue //store current process value for next value
+                                } else {
+                                    prevValue = this.#isValue(greaterValues[i]) ? greaterValues[i] :
+                                        greaterValues[i].nodeProcessor(json)
                                 }
                             }
                             return true;
