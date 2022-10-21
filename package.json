@@ -6,6 +6,7 @@
   "type":"module",
   "scripts": {
     "test": "tap",
+    "test-debug": "tap --no-timeout",
     "gen-readme":"pandoc -f docx -t gfm jsonex.docx > README.md"
   },
   "author": "",
