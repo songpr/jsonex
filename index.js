@@ -32,7 +32,7 @@ class JSONexpression {
         return jsonexp
     }
     static operatorNames() {
-        return ["name", "value", "equal"]
+        return ["name", "value", "equal", "less", "greater", "lessOrEqual", "greaterOrEqual"]
     }
     /**
      * 
@@ -67,28 +67,39 @@ class JSONexpression {
                         break
                     case "equal":
                         if (Array.isArray(nodeValue) !== true || nodeValue.length < 2) throw Error("value for equal operator must be array with length more than 1")
-                        const values = new Array(nodeValue.length)
-                        for (let i = 0; i < values.length; i++) {
-                            if (this.#isValue(nodeValue[i])) {
-                                values[i] = nodeValue[i]
-                            } else {
-                                values[i] = this.#nodeProcessorBuilder(nodeValue[i], result)
-                                if (result.isAllValues) result.isAllValues = false // a value is node
-                                if (parentResult && parentResult.isAllValues) parentResult.isAllValues = false // a value is node
-                            }
-                        }
+                        const equalValues = processArrayValues(nodeValue, result, parentResult)
                         result.nodeProcessor = (json) => {
                             if (result.isAllValues === false && (json == null || typeof (json) != "object")) throw Error("null is not support on non value JSON expression")
                             let prevValue = null
-                            for (let i = 0; i < values.length; i++) {
+                            for (let i = 0; i < equalValues.length; i++) {
                                 if (i > 0) {
-                                    const currentValue = this.#isValue(values[i]) ? values[i] :
-                                        values[i].nodeProcessor(json)
+                                    const currentValue = this.#isValue(equalValues[i]) ? equalValues[i] :
+                                        equalValues[i].nodeProcessor(json)
                                     if (currentValue !== prevValue) return false
                                     prevValue = currentValue //store current process value for next value
                                 } else {
-                                    prevValue = this.#isValue(values[i]) ? values[i] :
-                                        values[i].nodeProcessor(json)
+                                    prevValue = this.#isValue(equalValues[i]) ? equalValues[i] :
+                                        equalValues[i].nodeProcessor(json)
+                                }
+                            }
+                            return true;
+                        }
+                        break;
+                    case "less":
+                        if (Array.isArray(nodeValue) !== true || nodeValue.length < 2) throw Error("value for less operator must be array with length more than 1")
+                        const lessValues = processArrayValues(nodeValue, result, parentResult)
+                        result.nodeProcessor = (json) => {
+                            if (result.isAllValues === false && (json == null || typeof (json) != "object")) throw Error("null is not support on non value JSON expression")
+                            let prevValue = null
+                            for (let i = 0; i < lessValues.length; i++) {
+                                if (i > 0) {
+                                    const currentValue = this.#isValue(lessValues[i]) ? lessValues[i] :
+                                        lessValues[i].nodeProcessor(json)
+                                    if (!(currentValue != null && prevValue != null && typeof (currentValue) === typeof (prevValue) && prevValue < currentValue)) return false
+                                    prevValue = currentValue //store current process value for next value
+                                } else {
+                                    prevValue = this.#isValue(lessValues[i]) ? lessValues[i] :
+                                        lessValues[i].nodeProcessor(json)
                                 }
                             }
                             return true;
@@ -100,6 +111,22 @@ class JSONexpression {
             }
         }
         return result;
+
+        function processArrayValues(nodeValue, result, parentResult) {
+            const values = new Array(nodeValue.length)
+            for (let i = 0; i < values.length; i++) {
+                if (JSONexpression.#isValue(nodeValue[i])) {
+                    values[i] = nodeValue[i]
+                } else {
+                    values[i] = JSONexpression.#nodeProcessorBuilder(nodeValue[i], result, parentResult)
+                    if (result.isAllValues)
+                        result.isAllValues = false // a value is node
+                    if (parentResult && parentResult.isAllValues)
+                        parentResult.isAllValues = false // a value is node
+                }
+            }
+            return values
+        }
     }
     /**
      * private compile function use in JSONexpression only
