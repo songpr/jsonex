@@ -24,3 +24,15 @@ tap.ok(nameIsSortedAscending.exec({ name1: "a1", name2: "ab" }), "name1<name2")
 tap.ok(nameIsSortedAscending.exec({ name1: "a1", name2: "a1" }), "name1==name2")
 tap.notOk(nameIsSortedAscending.exec({ name1: "a", name2: 1 }), "different type alway false 'a'<1")
 tap.notOk(nameIsSortedAscending.exec({ name1: "2", name2: 3 }), "different type alway false '2'<3")
+
+//between age between 18 and maxAge
+const ageBetween18andMaxAge = jsonex.compile({ "lessOrEqual": [18, { "name": "age" }, { name: "maxAge" }] });
+tap.ok(ageBetween18andMaxAge.exec({ age: 18, maxAge: 30 }), "age is 18 and max age is 19; 18<=18<=30")
+tap.ok(ageBetween18andMaxAge.exec({ age: 19, maxAge: 20 }), "age is 19 and max age is 19; 18<=19<-20")
+tap.notOk(ageBetween18andMaxAge.exec({ age: 18, maxAge: "18" }), "age is 18 but max age is '18'")
+tap.notOk(ageBetween18andMaxAge.exec({ age: 18 }), "age is 18 but max age is undefined")
+tap.notOk(ageBetween18andMaxAge.exec({ age: 18 }), "age is 18 but max age is null")
+tap.notOk(ageBetween18andMaxAge.exec({ age: 17, maxAge: 25 }), "age is 17 and max age is 25;18<=17<-25")
+tap.notOk(ageBetween18andMaxAge.exec({}), "")
+tap.throws(() => ageBetween18andMaxAge.exec(null), "null is not support on non value JSON expression", "not support null if have name reference")
+

@@ -32,7 +32,7 @@ class JSONexpression {
         return jsonexp
     }
     static operatorNames() {
-        return ["name", "value", "equal", "less", "greater", "lessOrEqual", "greaterOrEqual"]
+        return ["name", "value", "equal", "less", "greater", "lessOrEqual", "greaterOrEqual", "and", "or", "not"]
     }
     /**
      * 
