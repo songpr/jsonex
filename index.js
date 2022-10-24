@@ -18,6 +18,9 @@ class JSONexpression {
         return this.#exp(jsonData);
     }
 
+    /**
+     * return true, if expression return as constant native value
+     */
     get isValue() {
         return this.#isAllValues
     }
@@ -66,38 +69,52 @@ class JSONexpression {
                         }
                         break
                     case "equal":
-                        if (Array.isArray(nodeValue) !== true || nodeValue.length < 2) throw Error("value for equal operator must be array with length more than 1")
+                        verifyValueForOperatorsRequireArray(name, nodeValue, 2)
                         const equalValues = processArrayValues(nodeValue, nodeProcessor, parentNodeProcessor)
                         nodeProcessor.process = (json) => {
                             return comparisonProcessor(json, (prevValue, currentValue) => prevValue === currentValue, equalValues, nodeProcessor)
                         }
                         break;
                     case "less":
-                        if (Array.isArray(nodeValue) !== true || nodeValue.length < 2) throw Error("value for less operator must be array with length more than 1")
+                        verifyValueForOperatorsRequireArray(name, nodeValue, 2)
                         const lessValues = processArrayValues(nodeValue, nodeProcessor, parentNodeProcessor)
                         nodeProcessor.process = (json) => {
                             return comparisonProcessor(json, (prevValue, currentValue) => prevValue < currentValue, lessValues, nodeProcessor)
                         }
                         break;
                     case "greater":
-                        if (Array.isArray(nodeValue) !== true || nodeValue.length < 2) throw Error("value for less operator must be array with length more than 1")
+                        verifyValueForOperatorsRequireArray(name, nodeValue, 2)
                         const greaterValues = processArrayValues(nodeValue, nodeProcessor, parentNodeProcessor)
                         nodeProcessor.process = (json) => {
                             return comparisonProcessor(json, (prevValue, currentValue) => prevValue > currentValue, greaterValues, nodeProcessor)
                         }
                         break;
                     case "lessOrEqual":
-                        if (Array.isArray(nodeValue) !== true || nodeValue.length < 2) throw Error("value for less operator must be array with length more than 1")
+                        verifyValueForOperatorsRequireArray(name, nodeValue, 2)
                         const lessOrEqualValues = processArrayValues(nodeValue, nodeProcessor, parentNodeProcessor)
                         nodeProcessor.process = (json) => {
                             return comparisonProcessor(json, (prevValue, currentValue) => prevValue <= currentValue, lessOrEqualValues, nodeProcessor)
                         }
                         break;
                     case "greaterOrEqual":
-                        if (Array.isArray(nodeValue) !== true || nodeValue.length < 2) throw Error("value for less operator must be array with length more than 1")
+                        verifyValueForOperatorsRequireArray(name, nodeValue, 2)
                         const greaterOrEqualValues = processArrayValues(nodeValue, nodeProcessor, parentNodeProcessor)
                         nodeProcessor.process = (json) => {
                             return comparisonProcessor(json, (prevValue, currentValue) => prevValue >= currentValue, greaterOrEqualValues, nodeProcessor)
+                        }
+                        break;
+                    case "and":
+                        verifyValueForOperatorsRequireArray(name, nodeValue, 2)
+                        const andValues = processArrayValues(nodeValue, nodeProcessor, parentNodeProcessor)
+                        nodeProcessor.process = (json) => {
+                            return comparisonProcessor(json, (prevValue, currentValue) => prevValue && currentValue, andValues, nodeProcessor)
+                        }
+                        break;
+                    case "or":
+                        verifyValueForOperatorsRequireArray(name, nodeValue, 2)
+                        const orValues = processArrayValues(nodeValue, nodeProcessor, parentNodeProcessor)
+                        nodeProcessor.process = (json) => {
+                            return comparisonProcessor(json, (prevValue, currentValue) => prevValue || currentValue, orValues, nodeProcessor)
                         }
                         break;
                     default:
@@ -106,6 +123,9 @@ class JSONexpression {
             }
         }
         return nodeProcessor;
+        function verifyValueForOperatorsRequireArray(operator, nodeValue, minLength) {
+            if (Array.isArray(nodeValue) !== true || nodeValue.length < minLength) throw Error(`value for "${operator}" operator must be array with length at least ${minLength}`)
+        }
         /**
          * comparison processor will process from left to right of values base on processor
          * @param {*} processor, processor function will process pair of values and return true or false
