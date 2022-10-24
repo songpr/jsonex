@@ -99,6 +99,20 @@ class JSONexpression {
                             return comparisonProcessor(json, (prevValue, currentValue) => prevValue > currentValue, greaterValues, nodeProcessor)
                         }
                         break;
+                    case "lessOrEqual":
+                        if (Array.isArray(nodeValue) !== true || nodeValue.length < 2) throw Error("value for less operator must be array with length more than 1")
+                        const lessOrEqualValues = processArrayValues(nodeValue, nodeProcessor, parentNodeProcessor)
+                        nodeProcessor.process = (json) => {
+                            return comparisonProcessor(json, (prevValue, currentValue) => prevValue <= currentValue, lessOrEqualValues, nodeProcessor)
+                        }
+                        break;
+                    case "greaterOrEqual":
+                        if (Array.isArray(nodeValue) !== true || nodeValue.length < 2) throw Error("value for less operator must be array with length more than 1")
+                        const greaterOrEqualValues = processArrayValues(nodeValue, nodeProcessor, parentNodeProcessor)
+                        nodeProcessor.process = (json) => {
+                            return comparisonProcessor(json, (prevValue, currentValue) => prevValue >= currentValue, greaterOrEqualValues, nodeProcessor)
+                        }
+                        break;
                     default:
                         throw Error(`Invalid operator "${name}"`)
                 }
