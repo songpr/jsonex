@@ -13,7 +13,7 @@ const alwaysfalseExp = jsonex.compile({ and: [false, { name: "isTrue" }] });
 tap.notOk(alwaysfalseExp.exec({}), "check always false null")
 tap.notOk(alwaysfalseExp.exec({ isTrue: true }), "check always false, pass true")
 tap.notOk(alwaysfalseExp.exec({ isTrue: null }), "check always false, pass true")
-
+tap.throws(() => alwaysfalseExp.exec(null), 'null is not support on non value JSON expression', "must pass json as data")
 
 const ageGreater18AndGreaterOrEqualAllowAgeExp = jsonex.compile({ and: [{ "greater": [{ "name": "age" }, 18] }, { "greaterOrEqual": [{ "name": "age" }, { "name": "allowAge" }] }] });
 tap.ok(ageGreater18AndGreaterOrEqualAllowAgeExp.exec({ age: 19, allowAge: 19 }), "age 19; 19>18 and 19>=19")

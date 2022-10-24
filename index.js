@@ -107,14 +107,47 @@ class JSONexpression {
                         verifyValueForOperatorsRequireArray(name, nodeValue, 2)
                         const andValues = processArrayValues(nodeValue, nodeProcessor, parentNodeProcessor)
                         nodeProcessor.process = (json) => {
-                            return comparisonProcessor(json, (prevValue, currentValue) => prevValue && currentValue, andValues, nodeProcessor)
+                            if (nodeProcessor.isAllValues === false && (json == null || typeof (json) != "object")) throw Error("null is not support on non value JSON expression")
+                            for (let i = 0; i < andValues.length; i++) {
+                                const currentValue = JSONexpression.#isValue(andValues[i]) ? andValues[i] :
+                                    andValues[i].process(json)
+                                if (currentValue == null || typeof (currentValue) !== "boolean") return false
+                                if (currentValue === false) return false
+                            }
+                            return true
                         }
                         break;
                     case "or":
                         verifyValueForOperatorsRequireArray(name, nodeValue, 2)
                         const orValues = processArrayValues(nodeValue, nodeProcessor, parentNodeProcessor)
                         nodeProcessor.process = (json) => {
-                            return comparisonProcessor(json, (prevValue, currentValue) => prevValue || currentValue, orValues, nodeProcessor)
+                            if (nodeProcessor.isAllValues === false && (json == null || typeof (json) != "object")) throw Error("null is not support on non value JSON expression")
+                            for (let i = 0; i < orValues.length; i++) {
+                                const currentValue = JSONexpression.#isValue(orValues[i]) ? orValues[i] :
+                                    orValues[i].process(json)
+                                if (currentValue == null || typeof (currentValue) !== "boolean") return false
+                                if (currentValue === true) return true
+                            }
+                            return false
+                        }
+                        break;
+                    case "not":
+                        if (Array.isArray(nodeValue)) throw Error(`Array value is not support by "${name}" operator`)
+                        if (JSONexpression.#isValue(nodeValue)) {
+                            if (typeof (nodeValue) === "boolean") nodeProcessor.process = () => !nodeValue
+                            throw Error('"not" operator support only boolean type value')
+                        } else {
+                            //nested node so create nodeProcessor and passing this nodeProcessor as parentNodeProcessor
+                            const valueProcessor = JSONexpression.#nodeProcessorBuilder(nodeValue, nodeProcessor)
+                            if (nodeProcessor.isAllValues)
+                                nodeProcessor.isAllValues = false // a value is node
+                            if (parentNodeProcessor && parentNodeProcessor.isAllValues)
+                                parentNodeProcessor.isAllValues = false // a value is node
+                            nodeProcessor.process = (json) => {
+                                if (nodeProcessor.isAllValues === false && (json == null || typeof (json) != "object")) throw Error("null is not support on non value JSON expression")
+                                const result = valueProcessor(json)
+                                return typeof (result) === "boolean" ? !result : false // if result is not of type boolean always return false
+                            }
                         }
                         break;
                     default:
