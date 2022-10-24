@@ -20,38 +20,40 @@ tap.notOk(alwaysfalseExp.exec({ isTrue: true }), "check always false, pass true"
 tap.notOk(alwaysfalseExp.exec({ isTrue: null }), "check always false, pass true")
 tap.throws(() => alwaysfalseExp.exec(null), 'null is not support on non value JSON expression', "must pass json as data")
 
-const ageGreater18AndGreaterOrEqualAllowAgeExp = jsonex.compile({ and: [{ "greater": [{ "name": "age" }, 18] }, { "greaterOrEqual": [{ "name": "age" }, { "name": "allowAge" }] }] });
-tap.ok(ageGreater18AndGreaterOrEqualAllowAgeExp.exec({ age: 19, allowAge: 19 }), "age 19; 19>18 and 19>=19")
-tap.ok(ageGreater18AndGreaterOrEqualAllowAgeExp.exec({ age: 19, allowAge: 10 }), "age 19; 19>18 and 19>=10")
-tap.notOk(ageGreater18AndGreaterOrEqualAllowAgeExp.exec({ age: "18" }), '"18" is not 18')
-tap.notOk(ageGreater18AndGreaterOrEqualAllowAgeExp.exec({ age: 10 }), "age not 18")
-tap.notOk(ageGreater18AndGreaterOrEqualAllowAgeExp.exec({ notage: 10, allowAge: 10 }), "no age")
-tap.notOk(ageGreater18AndGreaterOrEqualAllowAgeExp.exec({ age: null }), "age is null")
-tap.throws(() => ageGreater18AndGreaterOrEqualAllowAgeExp.exec(null), "null is not support on non value JSON expression", "not support null if have name reference")
+const ageNotGreater18AndGreaterOrEqualAllowAgeExp = jsonex.compile({ and: [{ not: { "greater": [{ "name": "age" }, 18] } }, { "greaterOrEqual": [{ "name": "age" }, { "name": "allowAge" }] }] });
+tap.ok(ageNotGreater18AndGreaterOrEqualAllowAgeExp.exec({ age: 18, allowAge: 18 }), "age 18; !(18>18) and 18>=18")
+tap.ok(ageNotGreater18AndGreaterOrEqualAllowAgeExp.exec({ age: 15, allowAge: 10 }), "age 15; !(15>18) and 15>=10")
+tap.notOk(ageNotGreater18AndGreaterOrEqualAllowAgeExp.exec({ age: "18" }), '"18" is not 18')
+tap.notOk(ageNotGreater18AndGreaterOrEqualAllowAgeExp.exec({ age: 10 }), "age not 18")
+tap.notOk(ageNotGreater18AndGreaterOrEqualAllowAgeExp.exec({ notage: 10, allowAge: 10 }), "no age")
+tap.notOk(ageNotGreater18AndGreaterOrEqualAllowAgeExp.exec({ age: null }), "age is null")
+tap.throws(() => ageNotGreater18AndGreaterOrEqualAllowAgeExp.exec(null), "null is not support on non value JSON expression", "not support null if have name reference")
 
-const ageGreater18AndAgeGreaterThanAllowAgeAndPermitByParentExp = jsonex.compile({
+const ageNotGreater18AndAgeGreaterThanAllowAgeAndPermitByParentExp = jsonex.compile({
     and: [
-        { "greater": [{ "name": "age" }, 18] },
+        { not: { "greater": [{ "name": "age" }, 18] } },
         { "greaterOrEqual": [{ "name": "age" }, { "name": "allowAge" }] },
         { "name": "isPermittedByParent" }
 
     ]
 });
-tap.ok(ageGreater18AndAgeGreaterThanAllowAgeAndPermitByParentExp.exec({ age: 19, allowAge: 10, isPermittedByParent: true }), "age 19; 19>18 and (19>=allowAge or isPermittedByParent)")
-tap.notOk(ageGreater18AndAgeGreaterThanAllowAgeAndPermitByParentExp.exec({ age: 19, allowAge: 25, isPermittedByParent: true }), "age 19; 19>18 and (19>=allowAge or isPermittedByParent)")
+tap.ok(ageNotGreater18AndAgeGreaterThanAllowAgeAndPermitByParentExp.exec({ age: 17, allowAge: 10, isPermittedByParent: true }), "age 17; !(17>18) and (19>=allowAge or isPermittedByParent)")
+tap.notOk(ageNotGreater18AndAgeGreaterThanAllowAgeAndPermitByParentExp.exec({ age: 19, allowAge: 17, isPermittedByParent: true }), "age 19; !(19>18) and (19>=allowAge or isPermittedByParent)")
 
 
 //nested and
-const ageGreater18And_AgeGreaterThanAllowAgeAndPermitByParentExp = jsonex.compile({
+const ageGreater18And_NotAgeGreaterThanAllowAgeAndPermitByParentExp = jsonex.compile({
     and: [
         { "greater": [{ "name": "age" }, 18] },
         {
-            and: [
-                { "greaterOrEqual": [{ "name": "age" }, { "name": "allowAge" }] },
-                { "name": "isPermittedByParent" }
-            ]
+            not: {
+                and: [
+                    { "greaterOrEqual": [{ "name": "age" }, { "name": "allowAge" }] },
+                    { "name": "isPermittedByParent" }
+                ]
+            }
         }
     ]
 });
-tap.ok(ageGreater18And_AgeGreaterThanAllowAgeAndPermitByParentExp.exec({ age: 19, allowAge: 10, isPermittedByParent: true }), "age 19; 19>18 and (19>=allowAge or isPermittedByParent)")
-tap.notOk(ageGreater18And_AgeGreaterThanAllowAgeAndPermitByParentExp.exec({ age: 19, allowAge: 25, isPermittedByParent: true }), "age 19; 19>18 and (19>=allowAge or isPermittedByParent)")
+tap.ok(ageGreater18And_NotAgeGreaterThanAllowAgeAndPermitByParentExp.exec({ age: 19, allowAge: 25, isPermittedByParent: false }), "age 19; 19>18 and !(19>=allowAge and false)")
+tap.notOk(ageGreater18And_NotAgeGreaterThanAllowAgeAndPermitByParentExp.exec({ age: 19, allowAge: 10, isPermittedByParent: true }), "age 19; 19>18 and !(19>=allowAge and true)")

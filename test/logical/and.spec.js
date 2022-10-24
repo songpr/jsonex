@@ -48,5 +48,5 @@ const ageGreater18And_AgeGreaterThanAllowAgeAndPermitByParentExp = jsonex.compil
         }
     ]
 });
-tap.ok(ageGreater18And_AgeGreaterThanAllowAgeAndPermitByParentExp.exec({ age: 19, allowAge: 10, isPermittedByParent: true }), "age 19; 19>18 and (19>=allowAge or isPermittedByParent)")
-tap.notOk(ageGreater18And_AgeGreaterThanAllowAgeAndPermitByParentExp.exec({ age: 19, allowAge: 25, isPermittedByParent: true }), "age 19; 19>18 and (19>=allowAge or isPermittedByParent)")
+tap.ok(ageGreater18And_AgeGreaterThanAllowAgeAndPermitByParentExp.exec({ age: 19, allowAge: 10, isPermittedByParent: true }), "age 19; 19>18 and (19>=allowAge and isPermittedByParent)")
+tap.notOk(ageGreater18And_AgeGreaterThanAllowAgeAndPermitByParentExp.exec({ age: 19, allowAge: 25, isPermittedByParent: true }), "age 19; 19>18 and (19>=allowAge and isPermittedByParent)")
