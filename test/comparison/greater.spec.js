@@ -20,5 +20,5 @@ tap.throws(() => ageGreaterThanAllowAgeGreaterThan18.exec(null), "null is not su
 const nameIsSortedAscending = jsonex.compile({ greater: [{ "name": "name2" }, { "name": "name1" }] })
 tap.ok(nameIsSortedAscending.exec({ name1: "a", name2: "ab" }), "name2>name1")
 tap.ok(nameIsSortedAscending.exec({ name1: "a1", name2: "ab" }), "name2>name1")
-tap.notOk(nameIsSortedAscending.exec({ name1: "a", name2: 1 }), "different type alway false 'a'<1")
-tap.notOk(nameIsSortedAscending.exec({ name1: "2", name2: 3 }), "different type alway false '2'<3")
+tap.notOk(nameIsSortedAscending.exec({ name1: "a", name2: 1 }), "different type alway false 'a'>=1")
+tap.notOk(nameIsSortedAscending.exec({ name1: "2", name2: 3 }), "different type alway false '2'>=3")
