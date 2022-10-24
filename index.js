@@ -69,20 +69,7 @@ class JSONexpression {
                         if (Array.isArray(nodeValue) !== true || nodeValue.length < 2) throw Error("value for equal operator must be array with length more than 1")
                         const equalValues = processArrayValues(nodeValue, nodeProcessor, parentNodeProcessor)
                         nodeProcessor.process = (json) => {
-                            if (node.isAllValues === false && (json == null || typeof (json) != "object")) throw Error("null is not support on non value JSON expression")
-                            let prevValue = null
-                            for (let i = 0; i < equalValues.length; i++) {
-                                if (i > 0) {
-                                    const currentValue = this.#isValue(equalValues[i]) ? equalValues[i] :
-                                        equalValues[i].process(json)
-                                    if (currentValue !== prevValue) return false
-                                    prevValue = currentValue //store current process value for next value
-                                } else {
-                                    prevValue = this.#isValue(equalValues[i]) ? equalValues[i] :
-                                        equalValues[i].process(json)
-                                }
-                            }
-                            return true;
+                            return comparisonProcessor(json, (prevValue, currentValue) => prevValue === currentValue, equalValues, nodeProcessor)
                         }
                         break;
                     case "less":
