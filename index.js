@@ -56,6 +56,8 @@ class JSONexpression {
                 switch (name) {
                     case "name":
                         if (typeof (nodeValue) !== "string") throw Error("name's value is missing")
+                        nodeProcessor.isAllValues = false
+                        if (parentNodeProcessor) parentNodeProcessor.isAllValues = false
                         nodeProcessor.process = (json) => {
                             if (json === null) throw Error("json data is null")
                             return json[nodeValue]
@@ -134,18 +136,17 @@ class JSONexpression {
                     case "not":
                         if (Array.isArray(nodeValue)) throw Error(`Array value is not support by "${name}" operator`)
                         if (JSONexpression.#isValue(nodeValue)) {
-                            if (typeof (nodeValue) === "boolean") nodeProcessor.process = () => !nodeValue
+                            if (typeof (nodeValue) === "boolean"){
+                                nodeProcessor.process = () => !nodeValue
+                                break;
+                            } 
                             throw Error('"not" operator support only boolean type value')
                         } else {
                             //nested node so create nodeProcessor and passing this nodeProcessor as parentNodeProcessor
                             const valueProcessor = JSONexpression.#nodeProcessorBuilder(nodeValue, nodeProcessor)
-                            if (nodeProcessor.isAllValues)
-                                nodeProcessor.isAllValues = false // a value is node
-                            if (parentNodeProcessor && parentNodeProcessor.isAllValues)
-                                parentNodeProcessor.isAllValues = false // a value is node
                             nodeProcessor.process = (json) => {
                                 if (nodeProcessor.isAllValues === false && (json == null || typeof (json) != "object")) throw Error("null is not support on non value JSON expression")
-                                const result = valueProcessor(json)
+                                const result = valueProcessor.process(json)
                                 return typeof (result) === "boolean" ? !result : false // if result is not of type boolean always return false
                             }
                         }
@@ -192,10 +193,6 @@ class JSONexpression {
                 } else {
                     //nested node so create nodeProcessor and passing this nodeProcessor as parentNodeProcessor
                     values[i] = JSONexpression.#nodeProcessorBuilder(nodeValue[i], nodeProcessor)
-                    if (nodeProcessor.isAllValues)
-                        nodeProcessor.isAllValues = false // a value is node
-                    if (parentNodeProcessor && parentNodeProcessor.isAllValues)
-                        parentNodeProcessor.isAllValues = false // a value is node
                 }
             }
             return values
