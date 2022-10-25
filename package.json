@@ -1,13 +1,14 @@
 {
   "name": "jsonexpression",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "JSON expression in JSON format.",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "test": "tap",
     "test-debug": "tap --no-timeout",
-    "gen-readme": "pandoc -f docx -t gfm jsonex.docx > README.md"
+    "gen-readme": "pandoc -f docx -t gfm jsonex.docx > README.md",
+    "gen-web": "uglifyjs -c -o web/jsonex.js index.js"
   },
   "author": "",
   "license": "BSD-3-Clause",
