@@ -1,5 +1,5 @@
 import tap from 'tap';
-import { jsonex } from '../../index.js';
+import jsonex from '../../index.js';
 tap.throws(() => { jsonex.compile({ or: [true] }) }, 'value for "or" operator must be array with length at least 2', "value must be array length >= 2")
 tap.throws(() => jsonex.compile({ or: false }), 'value for "or" operator must be array with length at least 2', "value must be array length >= 2")
 

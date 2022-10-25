@@ -214,4 +214,4 @@ class JSONexpression {
     }
 }
 
-export { JSONexpression as jsonex };
+export default JSONexpression;

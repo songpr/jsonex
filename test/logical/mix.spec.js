@@ -1,5 +1,5 @@
 import tap from 'tap';
-import { jsonex } from '../../index.js';
+import jsonex from '../../index.js';
 tap.throws(() => { jsonex.compile({ and: [true] }) }, 'value for "and" operator must be array with length at least 2', "value must be array length >= 2")
 tap.throws(() => jsonex.compile({ and: true }), 'value for "equal" operator must be array with length at least 2', "value must be array length >= 2")
 

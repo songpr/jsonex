@@ -1,5 +1,5 @@
 import tap from 'tap';
-import { jsonex } from '../../index.js';
+import jsonex from '../../index.js';
 const ageLessThan18Exp = jsonex.compile({ "lessOrEqual": [{ "name": "age" }, 18] });
 tap.ok(ageLessThan18Exp.exec({ age: 17 }), "age 17; 17<18")
 tap.ok(ageLessThan18Exp.exec({ age: 18 }), '18=18')

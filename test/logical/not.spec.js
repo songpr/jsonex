@@ -1,5 +1,5 @@
 import tap from 'tap';
-import { jsonex } from '../../index.js';
+import jsonex from '../../index.js';
 tap.notOk(jsonex.compile({ not: true }).exec(), "check false")
 tap.ok(jsonex.compile({ not: false }).exec(), "check true")
 
