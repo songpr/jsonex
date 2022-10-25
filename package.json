@@ -1,7 +1,7 @@
 {
-  "name": "jsonex",
+  "name": "jsonexpression",
   "version": "1.0.0",
-  "description": "JSON expression in jsJSONon format.",
+  "description": "JSON expression in JSON format.",
   "main": "index.js",
   "type":"module",
   "scripts": {
