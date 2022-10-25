@@ -55,20 +55,10 @@ class JSONexpression {
                 const nodeValue = node[name];
                 switch (name) {
                     case "name":
-                        if (typeof (nodeValue) !== "string") throw Error("name's value is missing")
-                        nodeProcessor.isAllValues = false
-                        if (parentNodeProcessor) parentNodeProcessor.isAllValues = false
-                        nodeProcessor.process = (json) => {
-                            if (json === null) throw Error("json data is null")
-                            return json[nodeValue]
-                        }
+                        nameRefBuilder(nodeValue)
                         break
                     case "value":
-                        if (typeof (nodeValue) === "object") throw Error("value operator support only native value")
-                        nodeProcessor.process = () => {
-                            //allow passing any json and return value
-                            return nodeValue
-                        }
+                        valueProcessBuilder(nodeValue)
                         break
                     case "equal":
                         verifyValueForOperatorsRequireArray(name, nodeValue, 2)
@@ -136,10 +126,10 @@ class JSONexpression {
                     case "not":
                         if (Array.isArray(nodeValue)) throw Error(`Array value is not support by "${name}" operator`)
                         if (JSONexpression.#isValue(nodeValue)) {
-                            if (typeof (nodeValue) === "boolean"){
+                            if (typeof (nodeValue) === "boolean") {
                                 nodeProcessor.process = () => !nodeValue
                                 break;
-                            } 
+                            }
                             throw Error('"not" operator support only boolean type value')
                         } else {
                             //nested node so create nodeProcessor and passing this nodeProcessor as parentNodeProcessor
@@ -154,9 +144,76 @@ class JSONexpression {
                     default:
                         throw Error(`Invalid operator "${name}"`)
                 }
+
+            } else {
+                throw Error(`Invalid operator "${name}"`)
             }
+        } else if (nodePropertyNames.length > 1 && typeof (node.type) === "string") {
+            //type conversion
+            switch (node.type) {
+                case "date":
+                    if (node.name !== undefined) {
+                        nameRefBuilder(node.name)
+                        if (typeof (nodeProcessor.process) === "function") {
+                            const nameRefProcess = nodeProcessor.process
+                            nodeProcessor.process = (json) => {
+                                const datetime = new Date(nameRefProcess(json))
+                                //do not throw error on invalid datetime value such as undefined, "not a date" etc, but when compare it will always 
+                                return datetime
+                            }
+                        }
+                    } else if (node.value !== undefined) {
+                        switch (node.value) {
+                            case "$today":
+                                //remove hours
+                                nodeProcessor.process = () => {
+                                    const today = new Date()
+                                    today.setHours(0, 0, 0, 0)
+                                    return today
+                                }
+                                break
+                            case "$now":
+                                nodeProcessor.process = () => (new Date())
+                                break
+                            default:
+                                const datetime = new Date(node.value)
+                                if (isNaN(datetime.getTime())) throw Error(`Invalid datetime value ${node.value}`) //throw invalid datetime value on compile time
+                                //if node.value = null date will "1970-01-01T00:00:00.000Z"
+                                nodeProcessor.process = () => (new Date(node.value))
+                                break
+                        }
+
+                    }
+                    break
+                default:
+                    throw Error(`Invalid type "${node.type}"`)
+            }
+        } else {
+            throw Error(`Invalid JSON expression '${JSON.stringify(node)}'`)
         }
         return nodeProcessor;
+        function valueProcessBuilder(nodeValue) {
+            if (typeof (nodeValue) === "object")
+                throw Error("value operator support only native value")
+            nodeProcessor.process = () => {
+                //allow passing any json and return value
+                return nodeValue
+            }
+        }
+
+        function nameRefBuilder(nodeValue) {
+            if (typeof (nodeValue) !== "string")
+                throw Error("name's value is missing")
+            nodeProcessor.isAllValues = false
+            if (parentNodeProcessor)
+                parentNodeProcessor.isAllValues = false
+            nodeProcessor.process = (json) => {
+                if (json === null)
+                    throw Error("json data is null")
+                return json[nodeValue]
+            }
+        }
+
         function verifyValueForOperatorsRequireArray(operator, nodeValue, minLength) {
             if (Array.isArray(nodeValue) !== true || nodeValue.length < minLength) throw Error(`value for "${operator}" operator must be array with length at least ${minLength}`)
         }
@@ -185,7 +242,7 @@ class JSONexpression {
             return true;
         }
 
-        function processArrayValues(nodeValue, nodeProcessor, parentNodeProcessor) {
+        function processArrayValues(nodeValue, nodeProcessor) {
             const values = new Array(nodeValue.length)
             for (let i = 0; i < values.length; i++) {
                 if (JSONexpression.#isValue(nodeValue[i])) {
