@@ -41,7 +41,6 @@ const ageGreater18OrAgeGreaterThanAllowAgeOrPermitByParentExp = jsonex.compile({
         { "greater": [{ "name": "age" }, 18] },
         { "greaterOrEqual": [{ "name": "age" }, { "name": "allowAge" }] },
         { "name": "isPermittedByParent" }
-
     ]
 });
 tap.ok(ageGreater18OrAgeGreaterThanAllowAgeOrPermitByParentExp.exec({ age: 19, allowAge: 28, isPermittedByParent: true }), "age 19; 19>18 or 19>=allowAge or isPermittedByParent")
