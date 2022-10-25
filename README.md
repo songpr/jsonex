@@ -215,7 +215,7 @@ name in JSON that use for operators
 <tr class="odd">
 <td><p>between</p>
 <p>Must always have 2 values in array</p></td>
-<td>{“$BTSfare”:{“between”:[15,59]}}</td>
+<td>{“lessOrEqual”: [15,{ name,“BTSfare”},59]}</td>
 <td>{“BTSfare”:59}</td>
 <td>true</td>
 <td>BTSfare &gt;=15 &amp;&amp; BTSfare &lt;=59</td>
@@ -472,19 +472,25 @@ Date type in JSON expression
 </tr>
 <tr class="even">
 <td>Before</td>
-<td><p>{“$expire_date”: {“greater”:{“type”:”date”, “value”:”$today”}</p>
+<td><p>{“greater”:</p>
+<p>[</p>
+<p>{“type”:”date”,</p>
+<p>“name”:“expire_date”},</p>
+<p>{“type”:”date”,</p>
+<p>“value”:”$today”}</p>
+<p>]</p>
 <p>}</p>
-<p>}</p>
-<p>{“$expire_date”:</p>
-<p>{</p>
-<p>“greater”:</p>
+<p>{“greater”:</p>
+<p>[</p>
+<p>{“type”:”date”,</p>
+<p>“name”:“expire_date”},</p>
 <p>{“type”:”date”,</p>
 <p>“value”:”$today”,</p>
 <p>“add”:{</p>
 <p>“day”:15</p>
 <p>}</p>
 <p>}</p>
-<p>}</p>
+<p>]</p>
 <p>}</p></td>
 <td><p>{“expire_date”:”2222-12-01” }</p>
 <p>today:”2022-10-06”</p>
@@ -499,20 +505,20 @@ Date type in JSON expression
 </tr>
 <tr class="odd">
 <td>within 15 days before expired</td>
-<td><p>{“$expire_date”:</p>
-<p>{</p>
-<p>“between”: [</p>
-<p>{“type<br />
-:”date”, “value”:”$today”</p>
-<p>},</p>
-<p>{type:”date”,</p>
+<td><p>{</p>
+<p>“lessOrEqual”:</p>
+<p>[</p>
+<p>{“type:”date”,</p>
+<p>“value”:”$today”},</p>
+<p>{“type”:”date”,</p>
+<p>“name”:“expire_date”},</p>
+<p>{“type”:”date”,</p>
 <p>“value”:”$today”,</p>
 <p>“add”:{</p>
 <p>“day”:15</p>
 <p>}</p>
+<p>}</p>
 <p>]</p>
-<p>}</p>
-<p>}</p>
 <p>}</p></td>
 <td><p>{“expire_date”:”2022- 10-15” }</p>
 <p>{“expire_date”:”2022- 10-01” }</p>
@@ -533,7 +539,7 @@ Date type in JSON expression
 <table>
 <thead>
 <tr class="header">
-<th>case</th>
+<th>Case</th>
 <th>JSON expression</th>
 <th>JSON data to evaluate</th>
 <th>Result in number except weekday (string)</th>
