@@ -6,6 +6,7 @@ class JSONexpression {
         const { process, isAllValues } = JSONexpression.#compile(jsonExpression)
         this.#exp = process
         this.#isAllValues = isAllValues
+        Object.freeze(this)
     }
     #exp = null
     #isAllValues = true
