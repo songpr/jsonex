@@ -19,6 +19,7 @@ tap.ok(notExpireYetAnd_AgeGreaterThanAllowAgeOrPermitByParentExp.exec({ expire_d
 tap.notOk(notExpireYetAnd_AgeGreaterThanAllowAgeOrPermitByParentExp.exec({ expire_date: "2000-01-01", age: 18, allowAge: 25, isPermittedByParent: true }), "expire_date>$today and (18>=allowAge or isPermittedByParent)")
 tap.notOk(notExpireYetAnd_AgeGreaterThanAllowAgeOrPermitByParentExp.exec({ expire_date: "abc", age: 18, allowAge: 25, isPermittedByParent: true }), "invalid expire_date always false")
 tap.notOk(notExpireYetAnd_AgeGreaterThanAllowAgeOrPermitByParentExp.exec({ age: 18, allowAge: 25, isPermittedByParent: true }), "expire_date undefined always false")
+tap.notOk(notExpireYetAnd_AgeGreaterThanAllowAgeOrPermitByParentExp.exec({ expire_date:null, age: 18, allowAge: 25, isPermittedByParent: true }), "expire_date undefined always false")
 
 tap.notOk(jsonex.compile({ "less": [{ type: "date", "name": "expire_date" }, { type: "date", value: "$today" }] }).exec({}), "expire_date undefined always false, less")
 tap.notOk(jsonex.compile({ "equal": [{ type: "date", "name": "expire_date" }, { type: "date", value: "$today" }] }).exec({}), "expire_date undefined always false, less")

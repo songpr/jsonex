@@ -18,3 +18,6 @@ tap.notOk(allowAge18.exec({ age: 18, allowAge: null }), "age is 18 but allow age
 tap.notOk(allowAge18.exec({ age: 18, allowAge: 25 }), "age is 18 but allow age is 25")
 tap.notOk(allowAge18.exec({}), "")
 tap.throws(() => allowAge18.exec(null), "null is not support on non value JSON expression", "not support null if have name reference")
+tap.notOk(jsonex.compile({ equal: [{ name: "age" }, null] }).exec({ age: 18 }), "age is null")
+tap.ok(jsonex.compile({ equal: [{ name: "age" }, null] }).exec({ age: null }), "age is null")
+tap.ok(jsonex.compile({ equal: [{ name: "age" }, null] }).exec({ noage: null }), "age is undefined")

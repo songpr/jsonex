@@ -16,7 +16,9 @@ class JSONexpression {
      * @returns 
      */
     exec(jsonData) {
-        return this.#exp(jsonData);
+        if (jsonData === undefined) return this.#exp();
+        const jsonCloneData = JSON.parse(JSON.stringify(jsonData))
+        return this.#exp(jsonCloneData);
     }
 
     /**
@@ -65,7 +67,20 @@ class JSONexpression {
                         verifyValueForOperatorsRequireArray(name, nodeValue, 2)
                         const equalValues = processArrayValues(nodeValue, nodeProcessor, parentNodeProcessor)
                         nodeProcessor.process = (json) => {
-                            return comparisonProcessor(json, (prevValue, currentValue) => prevValue === currentValue, equalValues, nodeProcessor)
+                            if (node.isAllValues === false && (json == null || typeof (json) != "object")) throw Error("null is not support on non value JSON expression")
+                            let prevValue = null
+                            for (let i = 0; i < equalValues.length; i++) {
+                                if (i > 0) {
+                                    const currentValue = JSONexpression.#isValue(equalValues[i]) ? equalValues[i] :
+                                        equalValues[i].process(json)
+                                    if (prevValue !== currentValue) return false
+                                    prevValue = currentValue //store current process value for next value
+                                } else {
+                                    prevValue = JSONexpression.#isValue(equalValues[i]) ? equalValues[i] :
+                                        equalValues[i].process(json)
+                                }
+                            }
+                            return true;
                         }
                         break;
                     case "less":
@@ -158,8 +173,10 @@ class JSONexpression {
                         if (typeof (nodeProcessor.process) === "function") {
                             const nameRefProcess = nodeProcessor.process
                             nodeProcessor.process = (json) => {
-                                const datetime = new Date(nameRefProcess(json))
-                                //do not throw error on invalid datetime value such as undefined, "not a date" etc, but when compare it will always 
+                                const dateValue = nameRefProcess(json)
+                                //do not throw error on invalid datetime value such as undefined, "not a date" etc, but when compare it will always false since it's invalid date
+                                //null treat as undefined => invalid date
+                                const datetime = dateValue === null ? new Date(undefined) : new Date(dateValue)
                                 return datetime
                             }
                         }
@@ -177,10 +194,14 @@ class JSONexpression {
                                 nodeProcessor.process = () => (new Date())
                                 break
                             default:
+                                if (node.value === null) {
+                                    const invalidDate = new Date(undefined)
+                                    nodeProcessor.process = () => (invalidDate)
+                                }
                                 const datetime = new Date(node.value)
                                 if (isNaN(datetime.getTime())) throw Error(`Invalid datetime value ${node.value}`) //throw invalid datetime value on compile time
                                 //if node.value = null date will "1970-01-01T00:00:00.000Z"
-                                nodeProcessor.process = () => (new Date(node.value))
+                                nodeProcessor.process = () => (datetime)
                                 break
                         }
 
@@ -211,7 +232,7 @@ class JSONexpression {
             nodeProcessor.process = (json) => {
                 if (json === null)
                     throw Error("json data is null")
-                return json[nodeValue]
+                return json[nodeValue] === undefined ? null : json[nodeValue]
             }
         }
 
@@ -222,17 +243,17 @@ class JSONexpression {
          * comparison processor will process from left to right of values base on processor
          * @param {*} processor, processor function will process pair of values and return true or false
          * @param {*} values, array of values
-         * @param {*} node, 
+         * @param {*} nodeProcessor, 
          * @returns 
          */
-        function comparisonProcessor(json, processor, values, node) {
-            if (node.isAllValues === false && (json == null || typeof (json) != "object")) throw Error("null is not support on non value JSON expression")
+        function comparisonProcessor(json, processor, values, nodeProcessor) {
+            if (nodeProcessor.isAllValues === false && (json == null || typeof (json) != "object")) throw Error("null is not support on non value JSON expression")
             let prevValue = null
             for (let i = 0; i < values.length; i++) {
                 if (i > 0) {
                     const currentValue = JSONexpression.#isValue(values[i]) ? values[i] :
                         values[i].process(json)
-                    if (currentValue == null || prevValue == null || typeof (currentValue) !== typeof (prevValue)) return false
+                    if (currentValue === null || prevValue === null || typeof (currentValue) !== typeof (prevValue)) return false
                     if (processor(prevValue, currentValue) === false) return false
                     prevValue = currentValue //store current process value for next value
                 } else {
