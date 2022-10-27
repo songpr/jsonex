@@ -1,3 +1,4 @@
+import { DateTime } from "luxon"
 /**
  * Instantiate a JSONexpression to represent an expression in JSON format
  */
@@ -58,10 +59,10 @@ class JSONexpression {
                 const nodeValue = node[name];
                 switch (name) {
                     case "name":
-                        nameRefBuilder(nodeValue)
+                        nameRefBuilder(nodeValue, nodeProcessor, parentNodeProcessor)
                         break
                     case "value":
-                        valueProcessBuilder(nodeValue)
+                        valueProcessBuilder(nodeValue, nodeProcessor)
                         break
                     case "equal":
                         verifyValueForOperatorsRequireArray(name, nodeValue, 2)
@@ -168,44 +169,7 @@ class JSONexpression {
             //type conversion
             switch (node.type) {
                 case "date":
-                    if (node.name !== undefined) {
-                        nameRefBuilder(node.name)
-                        if (typeof (nodeProcessor.process) === "function") {
-                            const nameRefProcess = nodeProcessor.process
-                            nodeProcessor.process = (json) => {
-                                const dateValue = nameRefProcess(json)
-                                //do not throw error on invalid datetime value such as undefined, "not a date" etc, but when compare it will always false since it's invalid date
-                                //null treat as undefined => invalid date
-                                const datetime = dateValue === null ? new Date(undefined) : new Date(dateValue)
-                                return datetime
-                            }
-                        }
-                    } else if (node.value !== undefined) {
-                        switch (node.value) {
-                            case "$today":
-                                //remove hours
-                                nodeProcessor.process = () => {
-                                    const today = new Date()
-                                    today.setHours(0, 0, 0, 0)
-                                    return today
-                                }
-                                break
-                            case "$now":
-                                nodeProcessor.process = () => (new Date())
-                                break
-                            default:
-                                if (node.value === null) {
-                                    const invalidDate = new Date(undefined)
-                                    nodeProcessor.process = () => (invalidDate)
-                                }
-                                const datetime = new Date(node.value)
-                                if (isNaN(datetime.getTime())) throw Error(`Invalid datetime value ${node.value}`) //throw invalid datetime value on compile time
-                                //if node.value = null date will "1970-01-01T00:00:00.000Z"
-                                nodeProcessor.process = () => (datetime)
-                                break
-                        }
-
-                    }
+                    dateProcessBuilder(node, nodeProcessor, parentNodeProcessor)
                     break
                 default:
                     throw Error(`Invalid type "${node.type}"`)
@@ -214,27 +178,7 @@ class JSONexpression {
             throw Error(`Invalid JSON expression '${JSON.stringify(node)}'`)
         }
         return nodeProcessor;
-        function valueProcessBuilder(nodeValue) {
-            if (typeof (nodeValue) === "object")
-                throw Error("value operator support only native value")
-            nodeProcessor.process = () => {
-                //allow passing any json and return value
-                return nodeValue
-            }
-        }
 
-        function nameRefBuilder(nodeValue) {
-            if (typeof (nodeValue) !== "string")
-                throw Error("name's value is missing")
-            nodeProcessor.isAllValues = false
-            if (parentNodeProcessor)
-                parentNodeProcessor.isAllValues = false
-            nodeProcessor.process = (json) => {
-                if (json === null)
-                    throw Error("json data is null")
-                return json[nodeValue] === undefined ? null : json[nodeValue]
-            }
-        }
 
         function verifyValueForOperatorsRequireArray(operator, nodeValue, minLength) {
             if (Array.isArray(nodeValue) !== true || nodeValue.length < minLength) throw Error(`value for "${operator}" operator must be array with length at least ${minLength}`)
@@ -290,6 +234,70 @@ class JSONexpression {
 
     static compile(jsonexp) {
         return new JSONexpression(jsonexp)
+    }
+}
+
+function valueProcessBuilder(nodeValue, nodeProcessor) {
+    if (typeof (nodeValue) === "object")
+        throw Error("value operator support only native value")
+    nodeProcessor.process = () => {
+        //allow passing any json and return value
+        return nodeValue
+    }
+}
+
+function nameRefBuilder(nodeValue, nodeProcessor, parentNodeProcessor) {
+    if (typeof (nodeValue) !== "string")
+        throw Error("name's value is missing")
+    nodeProcessor.isAllValues = false
+    if (parentNodeProcessor)
+        parentNodeProcessor.isAllValues = false
+    nodeProcessor.process = (json) => {
+        if (json === null)
+            throw Error("json data is null")
+        return json[nodeValue] === undefined ? null : json[nodeValue]
+    }
+}
+function dateProcessBuilder(node, nodeProcessor, parentNodeProcessor) {
+    if (node.name !== undefined) {
+        nameRefBuilder(node.name, nodeProcessor, parentNodeProcessor)
+        if (typeof (nodeProcessor.process) === "function") {
+            const nameRefProcess = nodeProcessor.process
+            nodeProcessor.process = (json) => {
+                const dateValue = nameRefProcess(json)
+                //do not throw error on invalid datetime value such as undefined, "not a date" etc, but when compare it will always false since it's invalid date
+                //null treat as undefined => invalid date
+                const datetime = dateValue === null ? new Date(undefined) : new Date(dateValue)
+                return datetime
+            }
+        }
+    } else if (node.value !== undefined) {
+        switch (node.value) {
+            case "$today":
+                //remove hours
+                nodeProcessor.process = () => {
+                    const today = new Date()
+                    today.setHours(0, 0, 0, 0)
+                    return today
+                }
+                break
+            case "$now":
+                nodeProcessor.process = () => DateTime.now()
+                break
+            default:
+                if (node.value === null) {
+                    const invalidDate = new Date(undefined)
+                    nodeProcessor.process = () => (invalidDate)
+                }
+                const datetime = new Date(node.value)
+                if (isNaN(datetime.getTime()))
+                    throw Error(`Invalid datetime value ${node.value}`) //throw invalid datetime value on compile time
+
+                //if node.value = null date will "1970-01-01T00:00:00.000Z"
+                nodeProcessor.process = () => (datetime)
+                break
+        }
+
     }
 }
 
