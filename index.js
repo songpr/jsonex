@@ -74,7 +74,12 @@ class JSONexpression {
                                 if (i > 0) {
                                     const currentValue = JSONexpression.#isValue(equalValues[i]) ? equalValues[i] :
                                         equalValues[i].process(json)
-                                    if (prevValue !== currentValue) return false
+                                    if (prevValue instanceof DateTime) {
+                                        if (!prevValue.equals(currentValue)) return false
+                                    } else {
+                                        if (prevValue !== currentValue) return false
+                                    }
+
                                     prevValue = currentValue //store current process value for next value
                                 } else {
                                     prevValue = JSONexpression.#isValue(equalValues[i]) ? equalValues[i] :
@@ -267,7 +272,7 @@ function dateProcessBuilder(node, nodeProcessor, parentNodeProcessor) {
                 const dateValue = nameRefProcess(json)
                 //do not throw error on invalid datetime value such as undefined, "not a date" etc, but when compare it will always false since it's invalid date
                 //null treat as undefined => invalid date
-                const datetime = dateValue === null ? new Date(undefined) : new Date(dateValue)
+                const datetime = dateValue == null ? DateTime.fromISO(undefined) : DateTime.fromISO(dateValue)
                 return datetime
             }
         }
@@ -276,8 +281,7 @@ function dateProcessBuilder(node, nodeProcessor, parentNodeProcessor) {
             case "$today":
                 //remove hours
                 nodeProcessor.process = () => {
-                    const today = new Date()
-                    today.setHours(0, 0, 0, 0)
+                    const today = DateTime.now().startOf("day")
                     return today
                 }
                 break
@@ -285,13 +289,15 @@ function dateProcessBuilder(node, nodeProcessor, parentNodeProcessor) {
                 nodeProcessor.process = () => DateTime.now()
                 break
             default:
-                if (node.value === null) {
-                    const invalidDate = new Date(undefined)
+                if (node.value === null || node.value === undefined) {
+                    const invalidDate = DateTime.fromISO(undefined)
                     nodeProcessor.process = () => (invalidDate)
+                    break;
                 }
-                const datetime = new Date(node.value)
-                if (isNaN(datetime.getTime()))
-                    throw Error(`Invalid datetime value ${node.value}`) //throw invalid datetime value on compile time
+                const datetime = DateTime.fromISO(node.value)
+                //other than null/undefined will throw compile time error
+                if (!datetime.isValid)
+                    throw Error(`Invalid datetime value "${node.value}", ${datetime.invalidReason}`) //throw invalid datetime value on compile time
 
                 //if node.value = null date will "1970-01-01T00:00:00.000Z"
                 nodeProcessor.process = () => (datetime)
