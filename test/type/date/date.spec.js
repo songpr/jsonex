@@ -26,12 +26,16 @@ tap.notOk(jsonex.compile({ "less": [{ type: "date", "name": "expire_date" }, { t
 tap.notOk(jsonex.compile({ "equal": [{ type: "date", "name": "expire_date" }, { type: "date", value: "$today" }] }).exec({}), "expire_date undefined always false, less")
 tap.ok(jsonex.compile({ "lessOrEqual": [{ type: "date", "value": "$today" }, { type: "date", value: "$now" }] }).exec({}), "$today <= $now")
 tap.ok(jsonex.compile({ "less": [{ type: "date", "name": "past" }, { type: "date", value: "$today" }] }).exec({past:"2022-11-01 00:00:00"}), "past < $today")
+tap.ok(jsonex.compile({ "lessOrEqual": [{ type: "date", "name": "past" }, { type: "date", value: "$today" }] }).exec({past:"2022-11-01T00:00:00"}), "past ISO format<= $today")
 tap.ok(jsonex.compile({ "greater": [{ type: "date", value: "$today" },{ type: "date", "name": "past" }] }).exec({past:"2022-11-01 00:00:00"}), "$today > past")
+tap.ok(jsonex.compile({ "greaterOrEqual": [{ type: "date", value: "$today" },{ type: "date", "name": "past" }] }).exec({past:"2022-11-01T00:00:00"}), "$today >= past ISO format")
 tap.notOk(jsonex.compile({ "less": [{ type: "date", "value": null }, { type: "date", value: "$now" }] }).exec({}), "null < $now, null/undefined always wrong as they are invalid datetime")
 tap.notOk(jsonex.compile({ "greater": [{ type: "date", "value": null }, { type: "date", value: "$now" }] }).exec({}), "null > $now, null/undefined always wrong as they are invalid datetime")
 const now = new Date()
 const todayISO = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 tap.ok(jsonex.compile({ "equal": [{ type: "date", "name": "today" }, { type: "date", value: "$today" }] }).exec({ today: todayISO }), `date in format "yyyy-mm-dd" will treat as local date, "${todayISO}"`)
+tap.ok(jsonex.compile({ "equal": [{ type: "date", "name": "today" }, { type: "date", value: "$today" }] }).exec({ today: `${todayISO}T00:00:00` }), `date in format "yyyy-mm-ddT00:00:00" will treat as local date, "${todayISO}"`)
+tap.ok(jsonex.compile({ "equal": [{ type: "date", "name": "today" }, { type: "date", value: "$today" }] }).exec({ today: `${todayISO} 00:00:00` }), `date in format "yyyy-mm-dd 00:00:00" will treat as local date, "${todayISO}"`)
 //
 tap.notOk(jsonex.compile({ "equal": [{ type: "date", "value": "2022-11-02" }, { type: "date", name: "date" }] }).exec({ date: "2022-11-2" }), 'date compare to invalid date will always false')
 tap.notOk(jsonex.compile({ "equal": [{ type: "date", "value": "2022-11-02" }, { value: now.getTime() }] }).exec({}), 'date compare to other type will always false')

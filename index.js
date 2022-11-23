@@ -272,7 +272,7 @@ function dateProcessBuilder(node, nodeProcessor, parentNodeProcessor) {
                 const dateValue = nameRefProcess(json)
                 //do not throw error on invalid datetime value such as undefined, "not a date" etc, but when compare it will always false since it's invalid date
                 //null treat as undefined => invalid date
-                const datetime = dateValue == null ? DateTime.fromSQL(undefined) : DateTime.fromSQL(dateValue)
+                const datetime = datetimeFromString(dateValue)
                 return datetime
             }
         }
@@ -290,11 +290,11 @@ function dateProcessBuilder(node, nodeProcessor, parentNodeProcessor) {
                 break
             default:
                 if (node.value === null || node.value === undefined) {
-                    const invalidDate = DateTime.fromSQL(undefined)
+                    const invalidDate = datetimeFromString(node.value)
                     nodeProcessor.process = () => (invalidDate)
                     break;
                 }
-                const datetime = DateTime.fromSQL(node.value)
+                const datetime = datetimeFromString(node.value)
                 //other than null/undefined will throw compile time error
                 if (!datetime.isValid)
                     throw Error(`Invalid datetime value "${node.value}", ${datetime.invalidReason}`) //throw invalid datetime value on compile time
@@ -308,3 +308,7 @@ function dateProcessBuilder(node, nodeProcessor, parentNodeProcessor) {
 }
 
 export default JSONexpression;
+function datetimeFromString(dateValue) {
+    return typeof(dateValue) != 'string' ? DateTime.fromSQL(undefined) : (dateValue.indexOf('T') >= 0 ? DateTime.fromISO(dateValue) : DateTime.fromSQL(dateValue))
+}
+
