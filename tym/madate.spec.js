@@ -1,5 +1,5 @@
 import tap from 'tap'
-const { default: jsonex } = await import('jsonexpression');
+import jsonex from '../index.js'
 
 const TYM_MA = jsonex.compile({
     "and": [

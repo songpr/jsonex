@@ -25,6 +25,7 @@ tap.notOk(notExpireYetAnd_AgeGreaterThanAllowAgeOrPermitByParentExp.exec({ expir
 tap.notOk(jsonex.compile({ "less": [{ type: "date", "name": "expire_date" }, { type: "date", value: "$today" }] }).exec({}), "expire_date undefined always false, less")
 tap.notOk(jsonex.compile({ "equal": [{ type: "date", "name": "expire_date" }, { type: "date", value: "$today" }] }).exec({}), "expire_date undefined always false, less")
 tap.ok(jsonex.compile({ "lessOrEqual": [{ type: "date", "value": "$today" }, { type: "date", value: "$now" }] }).exec({}), "$today <= $now")
+tap.ok(jsonex.compile({ "less": [{ type: "date", "name": "past" }, { type: "date", value: "$today" }] }).exec({past:"2022-11-01 00:00:00"}), "past < $today")
 tap.notOk(jsonex.compile({ "less": [{ type: "date", "value": null }, { type: "date", value: "$now" }] }).exec({}), "null < $now, null/undefined always wrong as they are invalid datetime")
 tap.notOk(jsonex.compile({ "greater": [{ type: "date", "value": null }, { type: "date", value: "$now" }] }).exec({}), "null > $now, null/undefined always wrong as they are invalid datetime")
 const now = new Date()
