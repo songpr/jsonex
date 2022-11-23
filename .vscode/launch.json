@@ -5,6 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "command": "npm test ${relativeFile}",
+            "name": "Run npm test on the file",
+            "request": "launch",
+            "type": "node-terminal"
+        },    
+        {
+            "command": "npm run test-debug --- ${relativeFile}",
+            "name": "Run npm test-debug on the file",
+            "request": "launch",
+            "type": "node-terminal"
+        },
+        {
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
