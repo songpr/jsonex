@@ -309,6 +309,6 @@ function dateProcessBuilder(node, nodeProcessor, parentNodeProcessor) {
 
 export default JSONexpression;
 function datetimeFromString(dateValue) {
-    return typeof(dateValue) != 'string' ? DateTime.fromSQL(undefined) : (dateValue.indexOf('T') >= 0 ? DateTime.fromISO(dateValue) : DateTime.fromSQL(dateValue))
+    return typeof (dateValue) != 'string' ? DateTime.fromSQL(undefined) : (dateValue.indexOf('T') >= 0 ? DateTime.fromISO(dateValue) : DateTime.fromSQL(dateValue))
 }
 
