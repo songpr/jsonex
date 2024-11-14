@@ -1,6 +1,6 @@
 {
   "name": "jsonexpression",
-  "version": "1.1.3",
+  "version": "1.2.0",
   "description": "JSON expression in JSON format.",
   "main": "index.js",
   "type": "module",
