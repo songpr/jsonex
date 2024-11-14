@@ -49,3 +49,13 @@ const ageGreater18And_AgeGreaterThanAllowAgeAndPermitByParentExp = jsonex.compil
 });
 tap.ok(ageGreater18And_AgeGreaterThanAllowAgeAndPermitByParentExp.exec({ age: 19, allowAge: 10, isPermittedByParent: true }), "age 19; 19>18 and (19>=allowAge and isPermittedByParent)")
 tap.notOk(ageGreater18And_AgeGreaterThanAllowAgeAndPermitByParentExp.exec({ age: 19, allowAge: 25, isPermittedByParent: true }), "age 19; 19>18 and (19>=allowAge and isPermittedByParent)")
+
+const ageGreater18AndGenderIsMaleOrFemaleExp = jsonex.compile(
+    {
+        and: [{ "greater": [{ "name": "age" }, 18] }
+            , { "in": { "name": "gender", values: ["male", "female"] } }]
+    });
+tap.ok(ageGreater18AndGenderIsMaleOrFemaleExp.exec({ age: 19, gender: "male" }), "age 19>18 and gender is male")
+tap.ok(ageGreater18AndGenderIsMaleOrFemaleExp.exec({ age: 30, gender: "female" }), "age 30>18 and gender is female")
+tap.notOk(ageGreater18AndGenderIsMaleOrFemaleExp.exec({ age: 15, gender: "female" }), "age 15<18 and gender is female")
+tap.notOk(ageGreater18AndGenderIsMaleOrFemaleExp.exec({ age: 19, gender: "gay" }), "age 19>18 and gender is gay")

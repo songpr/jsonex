@@ -39,7 +39,7 @@ class JSONexpression {
         return jsonexp
     }
     static operatorNames() {
-        return ["name", "value", "equal", "less", "greater", "lessOrEqual", "greaterOrEqual", "and", "or", "not"]
+        return ["name", "value", "in", "equal", "less", "greater", "lessOrEqual", "greaterOrEqual", "and", "or", "not"]
     }
     /**
      * 
@@ -61,11 +61,14 @@ class JSONexpression {
                     case "name":
                         nameRefBuilder(nodeValue, nodeProcessor, parentNodeProcessor)
                         break
+                    case "in":
+                        inBuilder(nodeValue, nodeProcessor, parentNodeProcessor)
+                        break
                     case "value":
                         valueProcessBuilder(nodeValue, nodeProcessor)
                         break
                     case "equal":
-                        verifyValueForOperatorsRequireArray(name, nodeValue, 2)
+                        checkArrayLengthForOperator(name, nodeValue, 2)
                         const equalValues = processArrayValues(nodeValue, nodeProcessor, parentNodeProcessor)
                         nodeProcessor.process = (json) => {
                             if (node.isAllValues === false && (json == null || typeof (json) != "object")) throw Error("null is not support on non value JSON expression")
@@ -90,35 +93,35 @@ class JSONexpression {
                         }
                         break;
                     case "less":
-                        verifyValueForOperatorsRequireArray(name, nodeValue, 2)
+                        checkArrayLengthForOperator(name, nodeValue, 2)
                         const lessValues = processArrayValues(nodeValue, nodeProcessor, parentNodeProcessor)
                         nodeProcessor.process = (json) => {
                             return comparisonProcessor(json, (prevValue, currentValue) => prevValue < currentValue, lessValues, nodeProcessor)
                         }
                         break;
                     case "greater":
-                        verifyValueForOperatorsRequireArray(name, nodeValue, 2)
+                        checkArrayLengthForOperator(name, nodeValue, 2)
                         const greaterValues = processArrayValues(nodeValue, nodeProcessor, parentNodeProcessor)
                         nodeProcessor.process = (json) => {
                             return comparisonProcessor(json, (prevValue, currentValue) => prevValue > currentValue, greaterValues, nodeProcessor)
                         }
                         break;
                     case "lessOrEqual":
-                        verifyValueForOperatorsRequireArray(name, nodeValue, 2)
+                        checkArrayLengthForOperator(name, nodeValue, 2)
                         const lessOrEqualValues = processArrayValues(nodeValue, nodeProcessor, parentNodeProcessor)
                         nodeProcessor.process = (json) => {
                             return comparisonProcessor(json, (prevValue, currentValue) => prevValue <= currentValue, lessOrEqualValues, nodeProcessor)
                         }
                         break;
                     case "greaterOrEqual":
-                        verifyValueForOperatorsRequireArray(name, nodeValue, 2)
+                        checkArrayLengthForOperator(name, nodeValue, 2)
                         const greaterOrEqualValues = processArrayValues(nodeValue, nodeProcessor, parentNodeProcessor)
                         nodeProcessor.process = (json) => {
                             return comparisonProcessor(json, (prevValue, currentValue) => prevValue >= currentValue, greaterOrEqualValues, nodeProcessor)
                         }
                         break;
                     case "and":
-                        verifyValueForOperatorsRequireArray(name, nodeValue, 2)
+                        checkArrayLengthForOperator(name, nodeValue, 2)
                         const andValues = processArrayValues(nodeValue, nodeProcessor, parentNodeProcessor)
                         nodeProcessor.process = (json) => {
                             if (nodeProcessor.isAllValues === false && (json == null || typeof (json) != "object")) throw Error("null is not support on non value JSON expression")
@@ -132,7 +135,7 @@ class JSONexpression {
                         }
                         break;
                     case "or":
-                        verifyValueForOperatorsRequireArray(name, nodeValue, 2)
+                        checkArrayLengthForOperator(name, nodeValue, 2)
                         const orValues = processArrayValues(nodeValue, nodeProcessor, parentNodeProcessor)
                         nodeProcessor.process = (json) => {
                             if (nodeProcessor.isAllValues === false && (json == null || typeof (json) != "object")) throw Error("null is not support on non value JSON expression")
@@ -184,10 +187,6 @@ class JSONexpression {
         }
         return nodeProcessor;
 
-
-        function verifyValueForOperatorsRequireArray(operator, nodeValue, minLength) {
-            if (Array.isArray(nodeValue) !== true || nodeValue.length < minLength) throw Error(`value for "${operator}" operator must be array with length at least ${minLength}`)
-        }
         /**
          * comparison processor will process from left to right of values base on processor
          * @param {*} processor, processor function will process pair of values and return true or false
@@ -241,7 +240,10 @@ class JSONexpression {
         return new JSONexpression(jsonexp)
     }
 }
-
+function checkArrayLengthForOperator(operator, nodeValue, minLength) {
+    if (Array.isArray(nodeValue) !== true || nodeValue.length < minLength)
+        throw Error(`value for "${operator}" operator must be array with length at least ${minLength}`)
+}
 function valueProcessBuilder(nodeValue, nodeProcessor) {
     if (typeof (nodeValue) === "object")
         throw Error("value operator support only native value")
@@ -263,6 +265,23 @@ function nameRefBuilder(nodeValue, nodeProcessor, parentNodeProcessor) {
         return json[nodeValue] === undefined ? null : json[nodeValue]
     }
 }
+function inBuilder(nodeValue, nodeProcessor, parentNodeProcessor) {
+    const inName = nodeValue.name
+    if (inName === undefined) throw Error("in operater: name's value is missing")
+    const inValues = nodeValue.values
+    if (inValues === undefined) throw Error("in operater: values's value is missing")
+    if (Array.isArray(inValues) === false || inValues.length < 1) throw Error("in operater: values must be array with more than 1 value")
+    nodeProcessor.isAllValues = false
+    if (parentNodeProcessor)
+        parentNodeProcessor.isAllValues = false
+    nodeProcessor.process = (json) => {
+        if (json === null)
+            throw Error("json data is null")
+        //return true if json[inName] is in inValues
+        return json[inName] === undefined ? null : inValues.indexOf(json[inName]) >= 0
+    }
+}
+
 function dateProcessBuilder(node, nodeProcessor, parentNodeProcessor) {
     if (node.name !== undefined) {
         nameRefBuilder(node.name, nodeProcessor, parentNodeProcessor)
